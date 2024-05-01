@@ -230,3 +230,15 @@ form p {
   margin: 0px;
   width: 100%;
 }
+
+.left_image {
+  float: left;
+  width: 100px;
+  height: 100px;
+}
+
+.right_image {
+  float: right;
+  width: 150px;
+  height: 75px;
+}
