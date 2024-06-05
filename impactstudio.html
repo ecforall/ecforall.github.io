@@ -1,0 +1,55 @@
+<html> 
+    <!--TEACHERS-->
+<head>
+    <meta charset = "utf-8"/>
+    <link href = "grader.css"  rel = "stylesheet">
+    <link href = "dll-logo-nobackground.png" rel = "shortcut icon" type = "image/png">
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"> </script>
+    <script src = "bundle.js"> </script>
+</head>
+<body>
+    <div style="text-align:center;">
+        <div class="header">
+            <!-- Logos -->
+            <img class="left_image" src="ec4all-logo-nobackground.png" alt="EC4ALL Logo" />
+            <img class="right_image" src="CanonLabSmallLogo.webp" alt="Canon Lab Logo" />
+            <!-- Title -->
+            <h1> Scratch IMPACT <br>Studio Grader </h1>
+            <!-- Unit selection menu (images) -->
+            <p> <br/> Select unit: </p>
+        </div>
+        <div class = "unit_container">
+            <div class = "units"> <p id = "unitsHTML"> </p> </div>
+            </div>
+        <script> window.fillUnitsHTMLAct3(0) </script>
+        <div>
+            <p id = "selectedUnit"> No unit selected </p>
+        </div>
+        <!-- change above line to use the new method-->
+
+        <!-- Form for entering the studio URL -->
+        <p> <br/> Enter studio URL: </p>
+        <form class = "url">
+            <input type = "text" id = "inches_input" name = "name" placeholder = "https://scratch.mit.edu/studios/...">
+            <input type = "button" class = "btn" value = "Go!" id = "process_button" onclick = "window.buttonHandler()"/>
+            </form>
+        <script> window.formHelper() </script>
+
+        <!-- Processing status -->
+        <p class = "error"     id = "process_error">  </p>
+        <p class = "wait_time" id = "wait_time">      </p>
+        <p class = "status"    id = "process_status"> </p>
+        </div>
+
+    <!-- Progress bar -->
+    <div id = "myProgress">
+        <div id = "greenbar"  class = 'progress_bar'> </div>
+        <div id = "yellowbar" class = 'progress_bar'> </div>
+        <div id = "redbar"    class = 'progress_bar'> </div>
+        </div>
+
+    <!-- Results report-->
+    <br> <br>
+    <div id = "report"> </div>
+</body>
+</html>
