@@ -233,12 +233,13 @@ form p {
 
 .left_image {
   float: left;
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
 }
 
 .right_image {
   float: right;
-  width: 150px;
-  height: 75px;
+  width: 120px;
+  height: 60px;
+  margin-top: 20px;
 }
