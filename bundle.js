@@ -1988,7 +1988,7 @@ module.exports = class {
 
 },{"./scratch3":26,"./templates/animation-L1-gaming.json":27,"./templates/animation-L1-multicultural.json":28,"./templates/animation-L1-youth-culture.json":29}],12:[function(require,module,exports){
 /*
-Place holder code for connection_circle grading script
+Place holder code for connectionCircle grading script
 Adapted from systems.js which adapted from final-project.js
 */
 
@@ -2034,8 +2034,9 @@ module.exports = class {
             var available_scripts = (pictureSprites.includes(sprite)) ? sprite.scripts.filter(s=>s.blocks.some(block=>block.opcode.includes("event_whenthisspriteclicked"))): [];
             out.pictureHas2When = available_scripts.length >= 2;
             out.arrowHasWhen = (arrows.includes(sprite)) ? sprite.scripts.some(s=>s.blocks.some(block=>block.opcode.includes("event_whenbroadcastreceived"))) : false;
-            var repeat_loops = sprite.scripts.filter(s=>s.blocks[0].opcode.includes("event_whenbroadcastreceived")).map(s=>s.blocks.filter(b=>b.opcode.includes("control_repeat"))).flat();
-            out.arrowBlinks = repeat_loops.some(loop=>loop.subscripts.some(s=>s.blocks.some(block=>block.opcode.includes("looks_nextcostume") && s.blocks.some(block=>block.opcode.includes("control_wait")))));
+            // var repeat_loops = sprite.scripts.filter(s=>s.blocks[0].opcode.includes("event_whenbroadcastreceived")).map(s=>s.blocks.filter(b=>b.opcode.includes("control_repeat"))).flat();
+            // out.arrowBlinks = repeat_loops.some(loop=>loop.subscripts.some(s=>s.blocks.some(block=>block.opcode.includes("looks_nextcostume") && s.blocks.some(block=>block.opcode.includes("control_wait")))));
+            out.arrowBlinks = (arrows.includes(sprite)) ? sprite.scripts.some(loop=>loop.subscripts.some(s=>s.blocks.some(block=>block.opcode.includes("looks_nextcostume") && s.blocks.some(block=>block.opcode.includes("control_wait"))))): false;
             return out;
         }
         var results = sprites.map(procSprite);
