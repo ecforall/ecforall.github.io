@@ -2003,8 +2003,9 @@ module.exports = class {
      initReqs() {
 
         this.requirements.SpriteCategory = { bool: false, str: "I used 3 picture sprites"};
-        this.requirements.EventCategory = { bool: false, str: "Event category on rubric"};
-        this.requirements.LoopsCategory = { bool: false, str: "Loops category on rubric"};
+        this.requirements.EventCategory = { bool: false, str: "Event category on rubric, Each picture sprite has 2 'when this sprite is clicked', Each arrow has a 'When I recieve'," +
+        "The backdrop has a green flag with voice recorded instructions for the project"};
+        this.requirements.LoopsCategory = { bool: false, str: "The arrows blink when the right sprite is clicked"};
     }
 
 
@@ -2059,247 +2060,324 @@ module.exports = class {
     }
 }
 },{"./scratch3":26}],13:[function(require,module,exports){
-/* Complex Conditionals L1(TIPP&SEE Modify) Autograder
+//madlibs.js Test
+require('./scratch3');
+
+// identifty a varibale and print out its value
+
+module.exports = class{
+    constructor(){
+        this.requirements = {};
+        this.extensions = {};
+    }
+    initReqs(){
+
+        this.requirements.Sprites = { bool: false, str: "I had at least one sprite and a backdrop" };
+        this.requirements.VarsExistance = { bool: false, str: "I created 3 variables" };
+        this.requirements.initAllVars = { bool: false, str: "I initialized my varibale values to 0" };
+        this.requirements.questionsAndVars = {bool: false, str: "I asked questions and store their responses in my variables" };
+    }
+
+    grade(fileObj, user){
+        //grading function
+        var project = new Project(fileObj, null);
+        this.initReqs();
+        if (!is(fileObj)) return;
+        
+        let allSprites = project.targets;
+        let stage = project.targets.find(t=>t.isStage);
+        let sprites = project.targets.filter(t=>!t.isStage);
+
+        function accumulateVars(sprites) {
+            let numOfVars = 0;
+            let s = 0;
+            for (s in sprites) {
+                if (sprites[s].variables != null) {
+                    numOfVars += Object.keys(sprites[s].variables).length;
+                }
+            }
+            return numOfVars;
+        }
+
+        function procSprite(sprite){
+            //evaluate a single sprite
+            var out = { initVars: 0, askedAndStored: false};
+            // given a sprite, check for initalization of vars
+            let varScripts = sprite.scripts.filter(s=>s.blocks.some(block=>block.opcode.includes("data_setvariableto") && block.inputs.VALUE[1].includes('0')));
+            
+            let gs = 0;
+            for (gs in varScripts) {
+                //check if scripts property exists in object
+                if (Object.keys(varScripts[gs]).includes("blocks")) {
+                    let gb = 0;
+                    for (gb in varScripts[gs].blocks) {
+                        let currBlock = varScripts[gs].blocks[gb];
+                        if (currBlock.opcode.includes("data_setvariableto") && currBlock.inputs.VALUE[1].includes('0')) {
+                            out.initVars += 1;
+                        }
+                    }
+                }
+            }
+            out.askedAndStored = sprite.scripts.some(s=>s.blocks.some(block=>block.opcode.includes("sensing_askandwait") && s.blocks.some(block=>block.opcode.includes("data_setvariableto"))));
+
+            return out;
+        };
+
+        var results = allSprites.map(procSprite);
+        function returnNumVars(exOut) {
+            return exOut.initVars;
+        }
+        var initVarsSum = results.map(returnNumVars).reduce((sum, current) => sum + current, 0);
+
+        this.requirements.Sprites.bool = allSprites.length >= 2;
+        this.requirements.VarsExistance.bool = accumulateVars(allSprites) >= 3;
+        this.requirements.initAllVars.bool = initVarsSum >= accumulateVars(allSprites) - 1;
+        this.requirements.questionsAndVars.bool = results.filter(o=>o.askedAndStored).length >= 1; // There exists one instance of asking & storing
+        return;
+    }
+}
+
+    /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
 
-require('./scratch3');
+// require('./scratch3');
 
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
+// // recursive function that searches a script and any subscripts (those within loops)
+// function iterateBlocks(script, func) {
+//     function recursive(scripts, func, level) {
+//         if (!is(scripts) || scripts === [[]]) return;
+//         for (var script of scripts) {
+//             for(var block of script.blocks) {
+//                 func(block, level);
+//                 recursive(block.subScripts(), func, level + 1);
+//             }
+//         }
+//     }
+//     recursive([script], func, 1);
+// }
 
-module.exports = class {
-    // initialize the requirement and extension objects to be graded
-    init() {
-        this.requirements = {
-            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},
-            yellowPainted: {bool: false, str: 'Switches Paint Mix sprite to "Yellow Paint Mix" when Yellow is selected.'},
-            purpleMixed: {bool: false, str: 'Paint Mix switches to "Purple Paint Mix" and broadcasts "purple" if Blue & Red selected.'},
-            greenMixed: {bool: false, str: 'Paint Mix switches to "Green Paint Mix" and broadcasts "green" if Blue & Yellow selected.'},
-        }
-        this.extensions = {
-            brownMixed: {bool: false, str: 'Paint Mix switches to "Brown Paint Mix" and broadcasts "brown" if Red & Blue & Yellow selected.'},
-            spriteCustomized: {bool: false, str: 'The Sprite is customized with different hair and skin color.'},
-            soundAdded: {bool: false, str: 'A sound effect plays when a painting is completed.'},
-        }
-    }
+// module.exports = class {
+//     // initialize the requirement and extension objects to be graded
+//     init() {
+//         this.requirements = {
+//             bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},
+//             yellowPainted: {bool: false, str: 'Switches Paint Mix sprite to "Yellow Paint Mix" when Yellow is selected.'},
+//             purpleMixed: {bool: false, str: 'Paint Mix switches to "Purple Paint Mix" and broadcasts "purple" if Blue & Red selected.'},
+//             greenMixed: {bool: false, str: 'Paint Mix switches to "Green Paint Mix" and broadcasts "green" if Blue & Yellow selected.'},
+//         }
+//         this.extensions = {
+//             brownMixed: {bool: false, str: 'Paint Mix switches to "Brown Paint Mix" and broadcasts "brown" if Red & Blue & Yellow selected.'},
+//             spriteCustomized: {bool: false, str: 'The Sprite is customized with different hair and skin color.'},
+//             soundAdded: {bool: false, str: 'A sound effect plays when a painting is completed.'},
+//         }
+//     }
 
-    // given an "operator_equals" block, check that one side is set to "1" and return the other side
-    getColor(block) {
-        let input1 = block.inputs.OPERAND1[1][1];
-        let input2 = block.inputs.OPERAND2[1][1];
+//     // given an "operator_equals" block, check that one side is set to "1" and return the other side
+//     getColor(block) {
+//         let input1 = block.inputs.OPERAND1[1][1];
+//         let input2 = block.inputs.OPERAND2[1][1];
 
-        if (input1 === "1") {
-            return input2;
-        } else if (input2 === "1") {
-            return input1;
-        } else {  // if neither side is set to "1", return null
-            return null;
-        }
-    }
+//         if (input1 === "1") {
+//             return input2;
+//         } else if (input2 === "1") {
+//             return input1;
+//         } else {  // if neither side is set to "1", return null
+//             return null;
+//         }
+//     }
 
-    // given an "If/Then" block that has an input conditon, find colors selected (color = 1)
-    checkColors(block) {
-        let colorReqs = {
-            red: false,
-            yellow: false,
-            blue: false,
-        };
+//     // given an "If/Then" block that has an input conditon, find colors selected (color = 1)
+//     checkColors(block) {
+//         let colorReqs = {
+//             red: false,
+//             yellow: false,
+//             blue: false,
+//         };
 
-        let ifCondition = block.conditionBlock;  // the operator block
-        if (ifCondition !== null) {
-            if ("operator_equals" === ifCondition.opcode) {
-                let colorSelected = this.getColor(ifCondition);
-                if (colorSelected === "Red") {
-                    colorReqs.red = true;
-                } else if (colorSelected === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (colorSelected === "Blue") {
-                    colorReqs.blue = true;
-                }
-            } else if ("operator_and" === ifCondition.opcode) {
-                let operand1 = ifCondition.toBlock(ifCondition.inputs.OPERAND1[1]);
-                let operand2 = ifCondition.toBlock(ifCondition.inputs.OPERAND2[1]);
-                let color1 = null;
-                let color2 = null;
-                let color3 = null;
+//         let ifCondition = block.conditionBlock;  // the operator block
+//         if (ifCondition !== null) {
+//             if ("operator_equals" === ifCondition.opcode) {
+//                 let colorSelected = this.getColor(ifCondition);
+//                 if (colorSelected === "Red") {
+//                     colorReqs.red = true;
+//                 } else if (colorSelected === "Yellow") {
+//                     colorReqs.yellow = true;
+//                 } else if (colorSelected === "Blue") {
+//                     colorReqs.blue = true;
+//                 }
+//             } else if ("operator_and" === ifCondition.opcode) {
+//                 let operand1 = ifCondition.toBlock(ifCondition.inputs.OPERAND1[1]);
+//                 let operand2 = ifCondition.toBlock(ifCondition.inputs.OPERAND2[1]);
+//                 let color1 = null;
+//                 let color2 = null;
+//                 let color3 = null;
 
-                // check first side of "and"
-                if (operand1.opcode === "operator_and") {  // if left side of "and" is also an "and" block
-                    color1 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND1[1]));
-                    color2 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND2[1]));
-                    // if left side of "and" is also an "and", then right side will have the third color
-                    color3 = this.getColor(operand2);
-                } else {  // if left side of "and" is NOT also an "and" block
-                    color1 = this.getColor(operand1);
-                }
+//                 // check first side of "and"
+//                 if (operand1.opcode === "operator_and") {  // if left side of "and" is also an "and" block
+//                     color1 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND1[1]));
+//                     color2 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND2[1]));
+//                     // if left side of "and" is also an "and", then right side will have the third color
+//                     color3 = this.getColor(operand2);
+//                 } else {  // if left side of "and" is NOT also an "and" block
+//                     color1 = this.getColor(operand1);
+//                 }
 
-                // check second side of "and"
-                if (operand2.opcode === "operator_and") {  // if right side of "and" is also an "and" block
-                    color2 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND1[1]));
-                    color3 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND2[1]));
-                    // color 1 will have already been set above
-                } else {  // if right side of "and" is NOT also an "and" block
-                    color2 = this.getColor(operand2);
-                }
+//                 // check second side of "and"
+//                 if (operand2.opcode === "operator_and") {  // if right side of "and" is also an "and" block
+//                     color2 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND1[1]));
+//                     color3 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND2[1]));
+//                     // color 1 will have already been set above
+//                 } else {  // if right side of "and" is NOT also an "and" block
+//                     color2 = this.getColor(operand2);
+//                 }
 
-                if (color1 === "Red") {
-                    colorReqs.red = true;
-                } else if (color1 === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (color1 === "Blue") {
-                    colorReqs.blue = true;
-                }
+//                 if (color1 === "Red") {
+//                     colorReqs.red = true;
+//                 } else if (color1 === "Yellow") {
+//                     colorReqs.yellow = true;
+//                 } else if (color1 === "Blue") {
+//                     colorReqs.blue = true;
+//                 }
 
-                if (color2 === "Red") {
-                    colorReqs.red = true;
-                } else if (color2 === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (color2 === "Blue") {
-                    colorReqs.blue = true;
-                }
+//                 if (color2 === "Red") {
+//                     colorReqs.red = true;
+//                 } else if (color2 === "Yellow") {
+//                     colorReqs.yellow = true;
+//                 } else if (color2 === "Blue") {
+//                     colorReqs.blue = true;
+//                 }
 
-                if (color3 === "Red") {
-                    colorReqs.red = true;
-                } else if (color3 === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (color3 === "Blue") {
-                    colorReqs.blue = true;
-                }
-            }
-        }
-        return colorReqs;
-    }
+//                 if (color3 === "Red") {
+//                     colorReqs.red = true;
+//                 } else if (color3 === "Yellow") {
+//                     colorReqs.yellow = true;
+//                 } else if (color3 === "Blue") {
+//                     colorReqs.blue = true;
+//                 }
+//             }
+//         }
+//         return colorReqs;
+//     }
 
-    // given an array of subscripts, check for existence of "switch costume to" and broadcast block
-    checkSubscript(array) {
-        let subScriptReqs = {
-            costumeTo: "",
-            broadcastStr: "",
-        };
+//     // given an array of subscripts, check for existence of "switch costume to" and broadcast block
+//     checkSubscript(array) {
+//         let subScriptReqs = {
+//             costumeTo: "",
+//             broadcastStr: "",
+//         };
 
-        let i = 0;
+//         let i = 0;
 
-        // iterate through the blocks in each subscript in the array
-        for (i; i < array.length; i++) {
-            iterateBlocks(array[i], (block, level) => {
-                let opcode = block.opcode;
+//         // iterate through the blocks in each subscript in the array
+//         for (i; i < array.length; i++) {
+//             iterateBlocks(array[i], (block, level) => {
+//                 let opcode = block.opcode;
 
-                if (opcode === "looks_switchcostumeto") {
-                    let costumeBlock = block.toBlock(block.inputs.COSTUME[1]);
-                    if ((costumeBlock != null) && (costumeBlock.opcode === "looks_costume")) {
-                        subScriptReqs.costumeTo = costumeBlock.fields.COSTUME[0];
-                    }
-                } else if (opcode === "event_broadcast") {
-                    subScriptReqs.broadcastStr = block.inputs.BROADCAST_INPUT[1][1];
-                }
-            });
-        }
-        return subScriptReqs;
-    }
+//                 if (opcode === "looks_switchcostumeto") {
+//                     let costumeBlock = block.toBlock(block.inputs.COSTUME[1]);
+//                     if ((costumeBlock != null) && (costumeBlock.opcode === "looks_costume")) {
+//                         subScriptReqs.costumeTo = costumeBlock.fields.COSTUME[0];
+//                     }
+//                 } else if (opcode === "event_broadcast") {
+//                     subScriptReqs.broadcastStr = block.inputs.BROADCAST_INPUT[1][1];
+//                 }
+//             });
+//         }
+//         return subScriptReqs;
+//     }
 
-    gradePaintMix(sprite) {
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
-            let eventBlock = script.blocks[0];
-            if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {
-                iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode;
+//     gradePaintMix(sprite) {
+//         // iterate through each of the sprite's scripts that start with the event 'When I Receive'
+//         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
+//             let eventBlock = script.blocks[0];
+//             if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {
+//                 iterateBlocks(script, (block, level) => {
+//                     let opcode = block.opcode;
 
-                    if (opcode === "control_if") {
-                        let colors = this.checkColors(block);
-                        let subBlocks = block.subScripts();
-                        let subReqs = this.checkSubscript(subBlocks);
+//                     if (opcode === "control_if") {
+//                         let colors = this.checkColors(block);
+//                         let subBlocks = block.subScripts();
+//                         let subReqs = this.checkSubscript(subBlocks);
 
-                        // if only one color is selected
-                        if (!colors.red && !colors.yellow && colors.blue) {
-                            if (subReqs.costumeTo === "Blue Paint Mix") {
-                                this.requirements.bluePainted.bool = true;
-                            }
-                        } else if (!colors.red && colors.yellow && !colors.blue) {
-                            if (subReqs.costumeTo === "Yellow Paint Mix") {
-                                this.requirements.yellowPainted.bool = true;
-                            }
-                        }
-                        // if two colors are selected
-                        if (colors.red && !colors.yellow && colors.blue) {
-                            if ((subReqs.costumeTo === "Purple Paint Mix") && (subReqs.broadcastStr === "purple")) {
-                                this.requirements.purpleMixed.bool = true;
-                            }
-                        } else if (!colors.red && colors.yellow && colors.blue) {
-                            if ((subReqs.costumeTo === "Green Paint Mix") && (subReqs.broadcastStr === "green")) {
-                                this.requirements.greenMixed.bool = true;
-                            }
-                        }
-                        // if all three colors are selected
-                        if (colors.red && colors.yellow && colors.blue) {
-                            if ((subReqs.costumeTo === "Brown Paint Mix") && (subReqs.broadcastStr === "brown")) {
-                                this.extensions.brownMixed.bool = true;
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    }
+//                         // if only one color is selected
+//                         if (!colors.red && !colors.yellow && colors.blue) {
+//                             if (subReqs.costumeTo === "Blue Paint Mix") {
+//                                 this.requirements.bluePainted.bool = true;
+//                             }
+//                         } else if (!colors.red && colors.yellow && !colors.blue) {
+//                             if (subReqs.costumeTo === "Yellow Paint Mix") {
+//                                 this.requirements.yellowPainted.bool = true;
+//                             }
+//                         }
+//                         // if two colors are selected
+//                         if (colors.red && !colors.yellow && colors.blue) {
+//                             if ((subReqs.costumeTo === "Purple Paint Mix") && (subReqs.broadcastStr === "purple")) {
+//                                 this.requirements.purpleMixed.bool = true;
+//                             }
+//                         } else if (!colors.red && colors.yellow && colors.blue) {
+//                             if ((subReqs.costumeTo === "Green Paint Mix") && (subReqs.broadcastStr === "green")) {
+//                                 this.requirements.greenMixed.bool = true;
+//                             }
+//                         }
+//                         // if all three colors are selected
+//                         if (colors.red && colors.yellow && colors.blue) {
+//                             if ((subReqs.costumeTo === "Brown Paint Mix") && (subReqs.broadcastStr === "brown")) {
+//                                 this.extensions.brownMixed.bool = true;
+//                             }
+//                         }
+//                     }
+//                 });
+//             }
+//         }
+//     }
 
-    // check Artist Sprite's "When I Receive" scripts for a sound block
-    checkSound(sprite) {
-        let sound = false;
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                if (["sound_playuntildone","sound_play"].includes(opcode)) {
-                    sound = true;
-                }
-            });
-        }
-        return sound;
-    }
+//     // check Artist Sprite's "When I Receive" scripts for a sound block
+//     checkSound(sprite) {
+//         let sound = false;
+//         // iterate through each of the sprite's scripts that start with the event 'When I Receive'
+//         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
+//             iterateBlocks(script, (block, level) => {
+//                 let opcode = block.opcode;
+//                 if (["sound_playuntildone","sound_play"].includes(opcode)) {
+//                     sound = true;
+//                 }
+//             });
+//         }
+//         return sound;
+//     }
 
-    // main grading function
-    grade(fileObj, user) {
-        var project = new Project(fileObj);
+//     // main grading function
+//     grade(fileObj, user) {
+//         var project = new Project(fileObj);
 
-        this.init();
-        // if project doesn't exist, return
-        if (!is(fileObj)) return;
+//         this.init();
+//         // if project doesn't exist, return
+//         if (!is(fileObj)) return;
 
-        for(var target of project.targets) {
-            if (!(target.isStage)) {
-                if (target.name.includes("Artist")) {
-                    // check if sprite has been changed or customized
-                    // default sprite is at index 4, "Artist 3", assetId: 7896f4313a525c551b95b745024b1b17
-                    let costumeIndex = target.currentCostume;
-                    let currAssetID = target.costumes[costumeIndex].assetId;
-                    if (currAssetID != "7896f4313a525c551b95b745024b1b17") {
-                        this.extensions.spriteCustomized.bool = true;
-                    }
+//         for(var target of project.targets) {
+//             if (!(target.isStage)) {
+//                 if (target.name.includes("Artist")) {
+//                     // check if sprite has been changed or customized
+//                     // default sprite is at index 4, "Artist 3", assetId: 7896f4313a525c551b95b745024b1b17
+//                     let costumeIndex = target.currentCostume;
+//                     let currAssetID = target.costumes[costumeIndex].assetId;
+//                     if (currAssetID != "7896f4313a525c551b95b745024b1b17") {
+//                         this.extensions.spriteCustomized.bool = true;
+//                     }
 
-                    // check if sound blocks were added after a broadcast is received
-                    let sound = this.checkSound(target);
-                    if (sound) {
-                        this.extensions.soundAdded.bool = true;
-                    }
-                } else if (target.name === "Paint Mix") {
-                    this.gradePaintMix(target);
-                }
-            }
-        }
-    }
-}
+//                     // check if sound blocks were added after a broadcast is received
+//                     let sound = this.checkSound(target);
+//                     if (sound) {
+//                         this.extensions.soundAdded.bool = true;
+//                     }
+//                 } else if (target.name === "Paint Mix") {
+//                     this.gradePaintMix(target);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 },{"./scratch3":26}],14:[function(require,module,exports){
 require('./grader');
@@ -11051,7 +11129,7 @@ let graders = {
     oneWaySyncL1:           { name: 'M6 - One-Way Sync L1',         file: require('./grading-scripts-s3/one-way-sync-L1') },
     oneWaySyncL2_create:    { name: 'M6 - One-Way Sync L2',         file: require('./grading-scripts-s3/one-way-sync-L2') },
     twoWaySyncL1:           { name: 'M7 - Two-Way Sync L1',         file: require('./grading-scripts-s3/two-way-sync-L1') },
-    complexConditionalsL1:  { name: 'M8 - Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1') },
+    // complexConditionalsL1:  { name: 'M8 - Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1') },
 };
 
 /// Act 1 graders
@@ -11069,7 +11147,8 @@ let actOneGraders = {
 
 /// Act 3 graders
 let actThreeGraders = {
-    connectionCircle: {name: "I1 - Connection Circle",    file: require('./act3-grading-scripts/connectionCircle')  }
+    connectionCircle: {name: "I1 - Connection Circle",    file: require('./act3-grading-scripts/connectionCircle')  },
+    madlibs:          {name: "I2 - Madlibs",              file: require('./act3-grading-scripts/madlibs')  }
 }
 
 let allGraders = {};
@@ -11604,7 +11683,7 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":6,"./act1-grading-scripts/ofrenda":7,"./act1-grading-scripts/onTheFarm":8,"./act1-grading-scripts/scavengerHunt":10,"./grading-scripts-s3/animation-L1":11,"./act3-grading-scripts/connectionCircle":12,"./grading-scripts-s3/complex-conditionals-L1":13,"./grading-scripts-s3/cond-loops-L1-syn":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1-syn":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":48}],51:[function(require,module,exports){
+},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":6,"./act1-grading-scripts/ofrenda":7,"./act1-grading-scripts/onTheFarm":8,"./act1-grading-scripts/scavengerHunt":10,"./grading-scripts-s3/animation-L1":11,"./act3-grading-scripts/connectionCircle":12,"./act3-grading-scripts/madlibs":13,"./grading-scripts-s3/cond-loops-L1-syn":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1-syn":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":48}],51:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 

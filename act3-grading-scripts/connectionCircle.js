@@ -12,10 +12,10 @@ module.exports = class {
     }
 
      initReqs() {
-
         this.requirements.SpriteCategory = { bool: false, str: "I used 3 picture sprites"};
-        this.requirements.EventCategory = { bool: false, str: "Event category on rubric"};
-        this.requirements.LoopsCategory = { bool: false, str: "Loops category on rubric"};
+        this.requirements.EventCategory = { bool: false, str: "Event category on rubric, Each picture sprite has 2 'when this sprite is clicked', Each arrow has a 'When I recieve'," +
+        "The backdrop has a green flag with voice recorded instructions for the project"};
+        this.requirements.LoopsCategory = { bool: false, str: "The arrows blink when the right sprite is clicked"};
     }
 
 
