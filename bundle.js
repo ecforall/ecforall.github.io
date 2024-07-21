@@ -2380,244 +2380,443 @@ module.exports = class{
 // }
 
 },{"./scratch3":26}],14:[function(require,module,exports){
-require('./grader');
+//graphProject.js (previously home to condLoopsL1)
 require('./scratch3');
 
-module.exports = class GradeCondLoopsL1 extends Grader {
+// identifty a varibale and print out its value
 
-    init(project) {
-        let strandTemplates = {
-            multicultural: require('./templates/conditional-loops-L1-multicultural'),
-            youthCulture:  require('./templates/conditional-loops-L1-youth-culture'),
-            gaming:        require('./templates/conditional-loops-L1-gaming')
-        };
-        this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-        if (this.strand === 'multicultural') {
-            this.requirements = [
-                new Requirement('Choose a different costume for the float.', this.testCostumes(project)),
-                new Requirement('Make the float stop at the Stop Sign, the turquoise blue line, or the red line.', this.testStop(project)),
-                new Requirement('Make the float say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the float.', this.testSpeed(project)),
-            ];
-        }
-        else if (this.strand === 'youthCulture') {
-            this.requirements = [
-                new Requirement('Choose a different costume for the car.', this.testCostumes(project)),
-                new Requirement('Make the car stop at Libby, the yellow line, or the purple line.', this.testStop(project)),
-                new Requirement('Make the car say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the car.', this.testSpeed(project)),
-            ];
-        }
-        else if (this.strand === 'gaming') {
-            this.requirements = [
-                new Requirement('Make the cat stop at the gem or a different sprite.', this.testStop(project)),
-                new Requirement('Have the cat say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the cat.', this.testSpeed(project)),
-            ];
-        }
-        this.extensions = [
-            new Extension('Add another sprite and have it stop at another sprite or a color.', this.checkStopExtension()),
-            new Extension('Add a sound when a sprite stops moving.', this.checkSoundExtension()),
-            new Extension('Have a sprite go back or turn around after it stops moving.', this.testTurnAround(project))
-        ];
+module.exports = class{
+    constructor(){
+        this.requirements = {};
+        this.extensions = {};
+    }
+    initReqs(){
+        this.requirements.Category1 = { bool: false, str: "Completed category 1"};
+        this.requirements.Category2 = { bool: false, str: "Completed category 2"};
+        this.requirements.Category3 = { bool: false, str: "Completed category 3"};
+        this.requirements.MainScript = { bool: false, str: "The structure of the main script is correct"};
+        this.requirements.CategoryOrder = { bool: false, str: "The ordering of categories is correct within the main script"};
     }
 
-    testCostumes(project) {
-        for (let sprite of project.sprites) {
-            let costumeName = sprite.costumes[sprite.currentCostume].name;
-            if (this.strand === 'multicultural' && costumeName === 'Butterfly Float') {
-                return false;
-            }
-            if (this.strand === 'youthCulture' && costumeName === 'Sedan') {
-                return false;
-            }
-        }
-        return true;
-    }
+    grade(fileObj, user){
+        var project = new Project(fileObj, null);
+        this.initReqs();
+        if (!is(fileObj)) return;
+        
+        let allSprites = project.targets;
+        let stage = project.targets.find(t=>t.isStage);
+        let sprites = project.targets.filter(t=>!t.isStage);
 
-    testStop(project) {
-        let spritesPassing = 0;
-        let spritesPassingExtension = 0;
-        for (let sprite of project.sprites) {
-            let scriptsPassing = 0;
-            let scriptsPassingExtension = 0;
-            for (let script of sprite.validScripts) {
-                let blocksPassing = 0;
-                let blocksPassingExtension = 0;
-                for (let block of script.blocks) {
-                    let moves = false;
-                    let movesForExtension = false;
-                    let stops = false;
-                    let stopsForExtension = false;
-                    if (block.opcode === 'control_repeat_until') {
-                        for (let subscript of block.subscriptsRecursive) {
-                            for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps') {
-                                    moves = true;
-                                }
-                                if (opcodeLists.changeXY.includes(subblock.opcode)) {
-                                    movesForExtension = true;
-                                }
+        function findCategory(sprite, n, x, y, costumeName) { // TODO: check for specifics
+            // Look for a specific custom function in a sprite
+            let customScripts = sprite.scripts.filter(s=>s.blocks[0].opcode.includes("procedures_definition") && s.blocks.some(block=>block.opcode.includes("sensing_askandwait")));
+            // console.log(customScripts, n);
+
+            var catOut = false;
+
+            let gs = 0;
+            for(gs in customScripts) {
+                if (Object.keys(customScripts[gs]).includes("blocks")) {
+                    //now iterate through the blocks in the script
+                    let scriptPieces = { set: false, move: false, costumeSwitch: false, stampsBall: false}; // TODO: if anyone of these are missing flag it!
+                    // console.log("here: ", customScripts[gs].blocks[0])
+                    if (customScripts[gs].blocks[0].opcode.includes("procedures_definition") && customScripts[gs].blocks[0].inputBlocks[0].mutation.proccode == `category${n}`) {
+                        let gb = 1;
+                        for (gb in customScripts[gs].blocks) {
+                            let currBlock = customScripts[gs].blocks[gb]
+                            if (currBlock.opcode.includes("data_setvariableto")) { // check for inputs (which var changing, new value)
+                                // sets category to answer
+                                scriptPieces.set = true;
+                            } else if (currBlock.opcode.includes("motion_gotoxy")) { // new x,y
+                                // moves the ball
+                                scriptPieces.move = true;
+                            } else if (currBlock.opcode.includes("looks_switchcostumeto")) { // check for inputs (new costume)
+                                // switch costume
+                                scriptPieces.costumeSwitch = true;
+                            } else if (currBlock.opcode.includes("procedures_call")) { // check the name of custom script is stampball
+                                // stamps ball
+                                scriptPieces.stampsBall = true;
                             }
                         }
-                        if (block.conditionBlock) {
-                            for (let menuBlock of block.conditionBlock.inputBlocks) {
-                                if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
-                                    let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
-                                    if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
-                                        stops = true;
-                                    }
-                                    if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
-                                        stops = true;
-                                    }
-                                    if (this.strand === 'gaming' && touchingObject !== 'Bee') {
-                                        stops = true;
-                                    }
-                                    stopsForExtension = true;
-                                }
-                            }
-                            if (block.conditionBlock.opcode === 'sensing_touchingcolor') {
-                                stops = true;
-                                stopsForExtension = true;
-                            }
-                        }
-                    }
-                    if (moves && stops) {
-                        blocksPassing++;
-                    }
-                    if (movesForExtension && stopsForExtension) {
-                        blocksPassingExtension++;
-                    }
-                }
-                if (blocksPassing) {
-                    scriptsPassing++;
-                }
-                if (blocksPassingExtension) {
-                    scriptsPassingExtension++;
-                }
-            }
-            if (scriptsPassing) {
-                spritesPassing++;
-            }
-            if (scriptsPassingExtension) {
-                spritesPassingExtension++;
-            }
-        }
-        this.stopExtensionPassing = false;
-        if (this.strand === 'multicultural') {
-            this.stopExtensionPassing = spritesPassingExtension > 2;
-            return spritesPassing > 1; /// To account for the toucan float
-        }
-        else {
-            this.stopExtensionPassing = spritesPassingExtension > 1;
-            return spritesPassing > 0;
-        }
-    }
-
-    testSay(project) {
-        for (let sprite of project.sprites) {
-            for (let script of sprite.validScripts) {
-                let hasLooped = false;
-                for (let block of script.blocks) {
-                    if (block.opcode === 'control_repeat_until') {
-                        hasLooped = true;
-                    }
-                    if ((block.opcode.includes('looks_say') || block.opcode.includes('looks_think')) && hasLooped) {
-                        return true;
-                    }
-                    if (block.opcode.includes('sound_play') && hasLooped) {
-                        this.soundExtensionPassing = true;
+                        catOut = Object.values(scriptPieces).filter(c=>c).length == Object.values(scriptPieces).length;
                     }
                 }
             }
+            return catOut;
         }
-        return false;
-    }
 
-    testSpeed(project) {
-        for (let sprite of project.sprites) {
-            for (let script of sprite.validScripts) {
-                for (let block of script.blocks) {
-                    let steps = 0;
-                    let duration = 0;
-                    if (block.opcode === 'control_repeat_until') {
-                        for (let subscript of block.subscriptsRecursive) {
-                            for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps') {
-                                    steps += subblock.inputs.STEPS[1][1];
-                                }
-                                if (subblock.opcode === 'control_wait') {
-                                    duration += subblock.inputs.DURATION[1][1];
-                                }
-                            }
-                        }
-                    }
-                    if (this.strand === 'multicultural') {
-                        if (sprite.name === 'Toucan' && steps && (steps !== 1 || duration !== 1)) {
-                            return true;
-                        }
-                        else if (steps && (steps !== 2 || duration !== 1)) {
-                            return true;
-                        }
-                    }
-                    if (this.strand === 'youthCulture' && steps && (steps !== 10 || duration !== 0.1)) {
-                        return true;
-                    }
-                    if (this.strand === 'gaming' && steps && (steps !== 5 || duration !== 1)) {
-                        return true;
-                    }
-                }
+        function procSprite(sprite){
+            var out = {loopStructure: false, categoryStructure: false, foundCats: []};
+            // given a sprite, check for initalization of vars
+            // let varScripts = sprite.scripts.filter(s=>s.blocks.some(block=>block.opcode.includes("data_setvariableto") && block.inputs.VALUE[1].includes('0')));
+
+            for (let i = 1; i <= 3; i++) {
+                // where i is the number of functions we want to check for
+                out.foundCats.push(findCategory(sprite,i, null, null, null));
             }
-        }
-        return false;
-    }
+            
+            var validMain = sprite.scripts.filter(s=>s.blocks[0].opcode.includes("event_whenbroadcastreceived") && s.blocks[1].opcode.includes("control_if_else"));
 
-    checkStopExtension() {
-        if (this.stopExtensionPassing) {
-            return true;
-        }
-        return false;
-    }
 
-    checkSoundExtension() {
-        if (this.soundExtensionPassing) {
-            return true;
-        }
-        return false;
-    }
-
-    testTurnAround(project) {
-        for (let sprite of project.sprites) {
-            for (let script of sprite.scripts) {
-                let hasLooped = false;
-                for (let block of script.blocks) {
-                    if (block.opcode === 'control_repeat_until') {
-                        hasLooped = true;
-                    }
-                    if (hasLooped) {
-                        if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) {
-                            return true;
-                        }
-                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) {
-                            return true;
-                        }
-                        if (block.opcode === 'motion_pointindirection') {
-                            return true;
-                        }
-                        for (let subscript of block.subscriptsRecursive) {
-                            for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) {
+            function checkLoopStructure(someBlocks, n){
+                // recursive function for checking structrue with a restriction of n control-if-elses
+                console.log("someblocks: ", someBlocks);
+                if (someBlocks.length >= 1) {
+                    for(const block of someBlocks) {
+                        if (n < 3) {
+                            if (Object.keys(block).includes("opcode") && block.opcode.includes("control_if_else") && block.inputBlocks.length >= 1) {
+                                n += 1;
+                                if (checkLoopStructure(block.inputBlocks, n)) {
                                     return true;
                                 }
                             }
+                        } else if (block.opcode.includes("control_if")) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            for (const script of validMain) { // TOOD: check the conditionals are in order
+                if (script.blocks[1].inputBlocks.length >= 1) {
+                    if (checkLoopStructure(script.blocks[1].inputBlocks, 0)) {
+                        out.loopStructure = true;
+                        break;
+                    }
+                }
+            }
+
+            function checkNestedFunctions(someBlocks, s){
+                // recursive function for checking structrue with a restriction of n control-if-elses
+                console.log("someBlocks: ", someBlocks);
+                for(const block of someBlocks) {
+                    if (Object.keys(block).includes("opcode") && block.opcode.includes("control_if_else") && block.inputBlocks.length >= 1 && block.subscripts[0].blocks.length >= 2) {
+                        // block.inputBlocks
+                        s += 1; // s = 2, WTS count == 2, checking the first category is in the thing
+                        let count = 0;
+                        console.log("block.inputBlocks: ", block.inputBlocks);
+                        for (let i = 1; i <= s; i++) {
+                            if (block.subscripts[0].blocks.some(b=>b.opcode.includes("procedures_call") && b.mutation.proccode == `category${i}`)) {
+                                count += 1;
+                            }
+                        }
+                        if (count == s && checkNestedFunctions(block.inputBlocks, s)) {
+                            return true;
+                        }
+                    } else if (Object.keys(block).includes("opcode") && block.opcode.includes("control_if") && block.inputBlocks.length >= 1 && block.subscripts[0].blocks.length >= 2) {
+                        let lastCount = 0;
+                        for (let i = 1; i <=5; i++) {
+                            if (block.subscripts[0].blocks.some(b=>b.opcode.includes("procedures_call") && b.mutation.proccode == `category${i}`)) {
+                                lastCount += 1
+                            }
+                        }
+                        return lastCount == 5;
+                    }
+                }
+                return false;
+            }
+
+
+
+            for (const script of validMain) {
+                //similar to previous loop but checking different properties
+                if (script.blocks[1].inputBlocks.length >= 1) {
+                    if (script.blocks[1].subscripts[0].blocks.some(b=>b.opcode.includes("procedures_call") && b.mutation.proccode == `category${1}`)) {
+                        if (checkNestedFunctions(script.blocks[1].inputBlocks, 1)) {
+                            out.categoryStructure = true;
+                            break;
                         }
                     }
                 }
             }
+            
+            // for (var script of validMain) {
+            //     if (script.blocks[1].inputBlocks.length >= 1) {
+            //         // script.blocks[1].inputBlocks.some(b=>b.opcode.includes("control_if_else"))
+            //         for (var block of script.blocks[1].inputBlocks) {
+            //             if (block.opcode.includes("control_if_else") && block.inputBlocks.length >= 1) {
+            //                 for (var block1 of block.inputBlocks) {
+            //                     if (block1.opcode.includes("control_if_else") && block1.inputBlocks.length >= 1) {
+            //                         for (var block2 of block1.inputBlocks) {
+            //                             if (block2.opcode.includes("control_if_else") && block2.inputBlock.length >= 1) {
+            //                                 for (var block3 of block2.inputBlocks) {
+            //                                     if (block3.opcode.includes("control_if")) {
+            //                                         out.loopStructure = true;
+            //                                     }
+            //                                 }
+            //                             }
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+
+            return out;
+        };
+
+        var results = allSprites.map(procSprite);
+        function returnCats(exOut) {
+            return exOut.foundCats
         }
-        return false;
+        var categoryMatrix = results.map(returnCats)
+        // we look at the column and check if at least one value is true
+
+        // console.log("cat1: ",categoryMatrix.map(c=>c[0]))
+        // console.log("cat2: ",categoryMatrix.map(c=>c[1]))
+        // console.log("cat3: ",categoryMatrix.map(c=>c[2]))
+        this.requirements.Category1.bool = categoryMatrix.map(c=>c[0]).some(c=>c)
+        this.requirements.Category2.bool = categoryMatrix.map(c=>c[1]).some(c=>c)
+        this.requirements.Category3.bool = categoryMatrix.map(c=>c[2]).some(c=>c)
+        this.requirements.MainScript.bool = results.filter(c=>c.loopStructure).length >= 1;
+        console.log("categoryStructure length: ",results.filter(c=>c.categoryStructure).length);
+        this.requirements.CategoryOrder.bool = results.filter(c=>c.categoryStructure).length == 1;
+        return;
     }
 }
+
+
+
+// require('./grader');
+// require('./scratch3');
+
+// module.exports = class GradeCondLoopsL1 extends Grader {
+
+//     init(project) {
+//         let strandTemplates = {
+//             multicultural: require('./templates/conditional-loops-L1-multicultural'),
+//             youthCulture:  require('./templates/conditional-loops-L1-youth-culture'),
+//             gaming:        require('./templates/conditional-loops-L1-gaming')
+//         };
+//         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
+//         if (this.strand === 'multicultural') {
+//             this.requirements = [
+//                 new Requirement('Choose a different costume for the float.', this.testCostumes(project)),
+//                 new Requirement('Make the float stop at the Stop Sign, the turquoise blue line, or the red line.', this.testStop(project)),
+//                 new Requirement('Make the float say something after it stops.', this.testSay(project)),
+//                 new Requirement('Change the speed of the float.', this.testSpeed(project)),
+//             ];
+//         }
+//         else if (this.strand === 'youthCulture') {
+//             this.requirements = [
+//                 new Requirement('Choose a different costume for the car.', this.testCostumes(project)),
+//                 new Requirement('Make the car stop at Libby, the yellow line, or the purple line.', this.testStop(project)),
+//                 new Requirement('Make the car say something after it stops.', this.testSay(project)),
+//                 new Requirement('Change the speed of the car.', this.testSpeed(project)),
+//             ];
+//         }
+//         else if (this.strand === 'gaming') {
+//             this.requirements = [
+//                 new Requirement('Make the cat stop at the gem or a different sprite.', this.testStop(project)),
+//                 new Requirement('Have the cat say something after it stops.', this.testSay(project)),
+//                 new Requirement('Change the speed of the cat.', this.testSpeed(project)),
+//             ];
+//         }
+//         this.extensions = [
+//             new Extension('Add another sprite and have it stop at another sprite or a color.', this.checkStopExtension()),
+//             new Extension('Add a sound when a sprite stops moving.', this.checkSoundExtension()),
+//             new Extension('Have a sprite go back or turn around after it stops moving.', this.testTurnAround(project))
+//         ];
+//     }
+
+//     testCostumes(project) {
+//         for (let sprite of project.sprites) {
+//             let costumeName = sprite.costumes[sprite.currentCostume].name;
+//             if (this.strand === 'multicultural' && costumeName === 'Butterfly Float') {
+//                 return false;
+//             }
+//             if (this.strand === 'youthCulture' && costumeName === 'Sedan') {
+//                 return false;
+//             }
+//         }
+//         return true;
+//     }
+
+//     testStop(project) {
+//         let spritesPassing = 0;
+//         let spritesPassingExtension = 0;
+//         for (let sprite of project.sprites) {
+//             let scriptsPassing = 0;
+//             let scriptsPassingExtension = 0;
+//             for (let script of sprite.validScripts) {
+//                 let blocksPassing = 0;
+//                 let blocksPassingExtension = 0;
+//                 for (let block of script.blocks) {
+//                     let moves = false;
+//                     let movesForExtension = false;
+//                     let stops = false;
+//                     let stopsForExtension = false;
+//                     if (block.opcode === 'control_repeat_until') {
+//                         for (let subscript of block.subscriptsRecursive) {
+//                             for (let subblock of subscript.blocks) {
+//                                 if (subblock.opcode === 'motion_movesteps') {
+//                                     moves = true;
+//                                 }
+//                                 if (opcodeLists.changeXY.includes(subblock.opcode)) {
+//                                     movesForExtension = true;
+//                                 }
+//                             }
+//                         }
+//                         if (block.conditionBlock) {
+//                             for (let menuBlock of block.conditionBlock.inputBlocks) {
+//                                 if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
+//                                     let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
+//                                     if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
+//                                         stops = true;
+//                                     }
+//                                     if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
+//                                         stops = true;
+//                                     }
+//                                     if (this.strand === 'gaming' && touchingObject !== 'Bee') {
+//                                         stops = true;
+//                                     }
+//                                     stopsForExtension = true;
+//                                 }
+//                             }
+//                             if (block.conditionBlock.opcode === 'sensing_touchingcolor') {
+//                                 stops = true;
+//                                 stopsForExtension = true;
+//                             }
+//                         }
+//                     }
+//                     if (moves && stops) {
+//                         blocksPassing++;
+//                     }
+//                     if (movesForExtension && stopsForExtension) {
+//                         blocksPassingExtension++;
+//                     }
+//                 }
+//                 if (blocksPassing) {
+//                     scriptsPassing++;
+//                 }
+//                 if (blocksPassingExtension) {
+//                     scriptsPassingExtension++;
+//                 }
+//             }
+//             if (scriptsPassing) {
+//                 spritesPassing++;
+//             }
+//             if (scriptsPassingExtension) {
+//                 spritesPassingExtension++;
+//             }
+//         }
+//         this.stopExtensionPassing = false;
+//         if (this.strand === 'multicultural') {
+//             this.stopExtensionPassing = spritesPassingExtension > 2;
+//             return spritesPassing > 1; /// To account for the toucan float
+//         }
+//         else {
+//             this.stopExtensionPassing = spritesPassingExtension > 1;
+//             return spritesPassing > 0;
+//         }
+//     }
+
+//     testSay(project) {
+//         for (let sprite of project.sprites) {
+//             for (let script of sprite.validScripts) {
+//                 let hasLooped = false;
+//                 for (let block of script.blocks) {
+//                     if (block.opcode === 'control_repeat_until') {
+//                         hasLooped = true;
+//                     }
+//                     if ((block.opcode.includes('looks_say') || block.opcode.includes('looks_think')) && hasLooped) {
+//                         return true;
+//                     }
+//                     if (block.opcode.includes('sound_play') && hasLooped) {
+//                         this.soundExtensionPassing = true;
+//                     }
+//                 }
+//             }
+//         }
+//         return false;
+//     }
+
+//     testSpeed(project) {
+//         for (let sprite of project.sprites) {
+//             for (let script of sprite.validScripts) {
+//                 for (let block of script.blocks) {
+//                     let steps = 0;
+//                     let duration = 0;
+//                     if (block.opcode === 'control_repeat_until') {
+//                         for (let subscript of block.subscriptsRecursive) {
+//                             for (let subblock of subscript.blocks) {
+//                                 if (subblock.opcode === 'motion_movesteps') {
+//                                     steps += subblock.inputs.STEPS[1][1];
+//                                 }
+//                                 if (subblock.opcode === 'control_wait') {
+//                                     duration += subblock.inputs.DURATION[1][1];
+//                                 }
+//                             }
+//                         }
+//                     }
+//                     if (this.strand === 'multicultural') {
+//                         if (sprite.name === 'Toucan' && steps && (steps !== 1 || duration !== 1)) {
+//                             return true;
+//                         }
+//                         else if (steps && (steps !== 2 || duration !== 1)) {
+//                             return true;
+//                         }
+//                     }
+//                     if (this.strand === 'youthCulture' && steps && (steps !== 10 || duration !== 0.1)) {
+//                         return true;
+//                     }
+//                     if (this.strand === 'gaming' && steps && (steps !== 5 || duration !== 1)) {
+//                         return true;
+//                     }
+//                 }
+//             }
+//         }
+//         return false;
+//     }
+
+//     checkStopExtension() {
+//         if (this.stopExtensionPassing) {
+//             return true;
+//         }
+//         return false;
+//     }
+
+//     checkSoundExtension() {
+//         if (this.soundExtensionPassing) {
+//             return true;
+//         }
+//         return false;
+//     }
+
+//     testTurnAround(project) {
+//         for (let sprite of project.sprites) {
+//             for (let script of sprite.scripts) {
+//                 let hasLooped = false;
+//                 for (let block of script.blocks) {
+//                     if (block.opcode === 'control_repeat_until') {
+//                         hasLooped = true;
+//                     }
+//                     if (hasLooped) {
+//                         if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) {
+//                             return true;
+//                         }
+//                         if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) {
+//                             return true;
+//                         }
+//                         if (block.opcode === 'motion_pointindirection') {
+//                             return true;
+//                         }
+//                         for (let subscript of block.subscriptsRecursive) {
+//                             for (let subblock of subscript.blocks) {
+//                                 if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) {
+//                                     return true;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         return false;
+//     }
+// }
 
 },{"./grader":21,"./scratch3":26,"./templates/conditional-loops-L1-gaming":30,"./templates/conditional-loops-L1-multicultural":31,"./templates/conditional-loops-L1-youth-culture":32}],15:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
@@ -11122,7 +11321,7 @@ let graders = {
     eventsL2_create:        { name: 'M2 - Events L2',               file: require('./grading-scripts-s3/events-L2') },
     animationL1:            { name: 'M3 - Animation L1',            file: require('./grading-scripts-s3/animation-L1') },
     // animationL2_create:     { name: 'M3 - Animation L2',            file: require('./grading-scripts-s3/animation-L2') },
-    condLoopsL1:            { name: 'M4 - Conditional Loops L1',    file: require('./grading-scripts-s3/cond-loops-L1-syn') },
+    // condLoopsL1:            { name: 'M4 - Conditional Loops L1',    file: require('./grading-scripts-s3/cond-loops-L1-syn') },
     condLoopsL2_create:     { name: 'M4 - Conditional Loops L2',    file: require('./grading-scripts-s3/cond-loops-L2') },
     decompL1:               { name: 'M5 - Decomp. by Sequence L1',  file: require('./grading-scripts-s3/decomp-L1') },
     decompL2_create:        { name: 'M5 - Decomp. by Sequence L2',  file: require('./grading-scripts-s3/decomp-L2') },
@@ -11147,8 +11346,9 @@ let actOneGraders = {
 
 /// Act 3 graders
 let actThreeGraders = {
-    connectionCircle: {name: "I1 - Connection Circle",    file: require('./act3-grading-scripts/connectionCircle')  },
-    madlibs:          {name: "I2 - Madlibs",              file: require('./act3-grading-scripts/madlibs')  }
+    connectionCircle: { name: "I1 - Connection Circle",    file: require('./act3-grading-scripts/connectionCircle')  },
+    madlibs:          { name: "I2 - Madlibs",              file: require('./act3-grading-scripts/madlibs')  },
+    graphProject:     { name: "I3 - Graph Project",        file: require('./act3-grading-scripts/graphProject')}
 }
 
 let allGraders = {};
@@ -11683,7 +11883,7 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":6,"./act1-grading-scripts/ofrenda":7,"./act1-grading-scripts/onTheFarm":8,"./act1-grading-scripts/scavengerHunt":10,"./grading-scripts-s3/animation-L1":11,"./act3-grading-scripts/connectionCircle":12,"./act3-grading-scripts/madlibs":13,"./grading-scripts-s3/cond-loops-L1-syn":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1-syn":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":48}],51:[function(require,module,exports){
+},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":6,"./act1-grading-scripts/ofrenda":7,"./act1-grading-scripts/onTheFarm":8,"./act1-grading-scripts/scavengerHunt":10,"./grading-scripts-s3/animation-L1":11,"./act3-grading-scripts/connectionCircle":12,"./act3-grading-scripts/madlibs":13,"./act3-grading-scripts/graphProject":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1-syn":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":48}],51:[function(require,module,exports){
 (function (global){(function (){
 'use strict';
 
