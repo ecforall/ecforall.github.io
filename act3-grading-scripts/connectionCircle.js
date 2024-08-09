@@ -57,11 +57,11 @@ module.exports = class {
         
         this.requirements.SpriteCategory.bool = pictureSprites.length >= 3;
         if (pictureSprites.length >= 1){
-            console.log("picturesHave2When: ", results.filter(c=>c.pictureHas2When).length == pictureSprites.length);
+            console.log("picturesHave2When: ", results.filter(c=>c.pictureHas2When).length >= 3);
             console.log("arrowsHaveWhen: ", results.filter(c=>c.arrowHasWhen).length == arrows.length);
             console.log("backdropValidation: ", stage.scripts.some(s=>s.blocks.some(block=>block.opcode.includes("event_whenflagclicked")) && s.blocks.some(block=>block.opcode.includes("sound_playuntildone"))));
 
-            this.requirements.picturesHave2When.bool = results.filter(c=>c.pictureHas2When).length == pictureSprites.length;
+            this.requirements.picturesHave2When.bool = results.filter(c=>c.pictureHas2When).length >= 3;
             this.requirements.arrowsHaveWhen.bool = results.filter(c=>c.arrowHasWhen).length == arrows.length;
             this.requirements.backdropValidation.bool = stage.scripts.some(s=>s.blocks.some(block=>block.opcode.includes("event_whenflagclicked")) && s.blocks.some(block=>block.opcode.includes("sound_playuntildone")));
             // this.requirements.EventCategory.bool = picturesHave2When && arrowsHaveWhen && backdropValidation;
