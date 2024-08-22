@@ -11350,6 +11350,10 @@ let actOneGraders = {
     finalProject:  { name: 'M9 - Interactive Story', file: require('./act1-grading-scripts/final-project') },
 };
 
+/// Act 2 graders
+let actTwoGraders = {
+}
+
 /// Act 3 graders
 let actThreeGraders = {
     connectionCircle: { name: "I1 - Connection Circle",    file: require('./act3-grading-scripts/connectionCircle')  },
@@ -11358,7 +11362,7 @@ let actThreeGraders = {
 }
 
 let allGraders = {};
-for (let graderKeyList of [graders, actOneGraders, actThreeGraders]) {
+for (let graderKeyList of [graders, actOneGraders, actTwoGraders, actThreeGraders]) {
     for (let graderKey in graderKeyList) {
         allGraders[graderKey] = graderKeyList[graderKey];
     }
@@ -11443,7 +11447,7 @@ window.fillUnitsHTML = function() {
     document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
 
-/////////////// grader function for act 1 ////////////////////
+/////////////// grader function for Act 1 (CREATE) ////////////////////
 window.fillUnitsHTMLAct1 = function() {
     let HTMLString = '';
     for (let graderKey in actOneGraders) {
@@ -11455,9 +11459,23 @@ window.fillUnitsHTMLAct1 = function() {
     }
     document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
-////////////// grader function for act 1 ////////////////////
+////////////// grader function for Act 1 (CREATE) ////////////////////
 
-/////////////// grader function for act 3 (IMPACT) ////////////////////
+////////////// grader function for Act 2 (DESIGN) ////////////////////
+window.fillUnitsHTMLAct2 = function() {
+    let HTMLString = '';
+    for (let graderKey in actTwoGraders) {
+        HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
+        HTMLString += '<label class = "unitlabel">';
+        HTMLString += '<img src="pictures/' + graderKey + '.png">';
+        HTMLString += actTwoGraders[graderKey].name;
+        HTMLString += '</label> </a>';
+    }
+    document.getElementById("unitsHTML").innerHTML = HTMLString;
+}
+/////////////// grader function for Act 2 (DESIGN) ////////////////////
+
+/////////////// grader function for Act 3 (IMPACT) ////////////////////
 window.fillUnitsHTMLAct3 = function() {
     let HTMLString = '';
     for (let graderKey in actThreeGraders) {
@@ -11469,7 +11487,7 @@ window.fillUnitsHTMLAct3 = function() {
     }
     document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
-/////////////// grader function for act 3 (IMPACT) ////////////////////
+/////////////// grader function for Act 3 (IMPACT) ////////////////////
 
 
 
