@@ -1,7 +1,8 @@
-//graphProject.js (previously home to condLoopsL1)
-require('./scratch3');
-
-// identifty a varibale and print out its value
+/*
+graphProject.js (previously condLoopsL1)
+Alex Reyes Aranda Summer 2024
+*/
+require('../grading-scripts-s3/scratch3')
 
 module.exports = class{
     constructor(){
@@ -148,29 +149,6 @@ module.exports = class{
                     }
                 }
             }
-            
-            // for (var script of validMain) {
-            //     if (script.blocks[1].inputBlocks.length >= 1) {
-            //         // script.blocks[1].inputBlocks.some(b=>b.opcode.includes("control_if_else"))
-            //         for (var block of script.blocks[1].inputBlocks) {
-            //             if (block.opcode.includes("control_if_else") && block.inputBlocks.length >= 1) {
-            //                 for (var block1 of block.inputBlocks) {
-            //                     if (block1.opcode.includes("control_if_else") && block1.inputBlocks.length >= 1) {
-            //                         for (var block2 of block1.inputBlocks) {
-            //                             if (block2.opcode.includes("control_if_else") && block2.inputBlock.length >= 1) {
-            //                                 for (var block3 of block2.inputBlocks) {
-            //                                     if (block3.opcode.includes("control_if")) {
-            //                                         out.loopStructure = true;
-            //                                     }
-            //                                 }
-            //                             }
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
 
             return out;
         };

@@ -1,7 +1,8 @@
-//madlibs.js Test
-require('./scratch3');
-
-// identifty a varibale and print out its value
+/*
+madlibs.js checker
+Alex Reyes Aranda Summer 2024
+*/
+require('../grading-scripts-s3/scratch3')
 
 module.exports = class{
     constructor(){

@@ -1,9 +1,10 @@
 /*
-Place holder code for connection_circle grading script
-Adapted from systems.js which adapted from final-project.js
+Place holder code for connectionCircle grading script
+Alex Reyes Aranda Summer 2024
+Adapted from systems.js
 */
 
-require('./scratch3');
+require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
     constructor() {
