@@ -43,7 +43,8 @@ let actThreeGraders = {
     connectionCircle:       { name: 'I1 - Connection Circle',   file: require('./act3-grading-scripts/connectionCircle')  }, //#12
     madlibs:                { name: 'I2 - Madlibs',             file: require('./act3-grading-scripts/madlibs')  }, //#13
     graphProject:           { name: 'I3 - Graph Project',       file: require('./act3-grading-scripts/graphProject')  }, //#14
-    invasiveSpecies:        { name: 'I4 - Invasive Species',    file: require('./act3-grading-scripts/invasiveSpecies')}
+    invasiveSpecies:        { name: 'I4 - Invasive Species',    file: require('./act3-grading-scripts/invasiveSpecies')},
+    diceQuest:              { name: 'I5 - Dice Quest',          file: require('./act3-grading-scripts/diceQuest')}
 };
 
 let allGraders = {};
