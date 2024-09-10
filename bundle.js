@@ -11434,6 +11434,10 @@ function checkbox(bool) {
     return (bool) ? ('✔️') : ('⬜️');
 }
 
+function starbox(bool) {
+    return (bool) ? ('⭐') : ('⬜️');
+}
+
 /* Adds results to reports_list and prints. */
 function report(projectID, requirements, extensions, projectAuthor) {
     let ret_list = [];
@@ -11453,7 +11457,7 @@ function report(projectID, requirements, extensions, projectAuthor) {
         ret_list.push(projectMode ? '\nIf you are done early:' : 'Extensions:')
         for (let x in extensions) {
             if (extensions[x].bool) complete_exts++;
-            ret_list.push(checkbox(extensions[x].bool) + ' - ' + extensions[x].str);
+            ret_list.push(starbox(extensions[x].bool) + ' - ' + extensions[x].str);
         }
     }
     ret_list.push('');
