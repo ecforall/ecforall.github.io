@@ -1,7 +1,6 @@
 /*
-Place holder code for connectionCircle grading script
+connectionCircle grading script
 Alex Reyes Aranda Summer 2024
-Adapted from systems.js
 */
 
 require('../grading-scripts-s3/scratch3')
@@ -14,8 +13,6 @@ module.exports = class {
 
      initReqs() {
         this.requirements.SpriteCategory = { bool: false, str: "I used 3 picture sprites"};
-        // this.requirements.EventCategory = { bool: false, str: "Event category on rubric: Each picture sprite has at least 2 of 'When this sprite is clicked'; Each arrow has a 'When I recieve block'," +
-        // "The backdrop has a green flag with voice recorded instructions for the project"};
         this.requirements.picturesHave2When = {bool: false, str: "Each picture sprite has at least 2 'When this sprite is clicked' blocks"};
         this.requirements.arrowsHaveWhen = {bool: false, str: "Each arrow has a 'When I recieve' block"};
         this.requirements.backdropValidation = {bool: false, str: "The backdrop has a green flag with voice recorded instructions"};
